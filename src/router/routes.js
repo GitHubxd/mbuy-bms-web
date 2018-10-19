@@ -13,13 +13,18 @@ const UserIndex = () => import('@/components/views/user/Index')
 const UserList = () => import('@/components/views/user/UserList')
 const UserEdit = () => import('@/components/views/user/UserEdit')
 
+// goods
+const GoodsIndex = () => import('@/components/views/goods/Index')
+const GoodsList = () => import('@/components/views/goods/GoodsList')
+const GoodsEdit = () => import('@/components/views/goods/GoodsEdit')
+
 const Table = () => import('@/components/views/Table')
 const UserInfo = () => import('@/components/views/UserInfo')
 
 const List = () => import('@/components/views/List')
 const Filter = () => import('@/components/pages/Filter')
 const Lock = () => import('@/components/layout/base/Lock')
-const GoodsList = () => import('@/components/views/goods/Goods')
+
 
 const routes = [
   {
@@ -120,10 +125,23 @@ const routes = [
       {
         path: '/goods',
         name: '商品列表',
-        component: GoodsList,
+        component: GoodsIndex,
         meta: {
           requiresAuth: true // 是否需要登录
-        }
+        },
+        redirect: '/goods/goodsList',
+        children: [
+          {
+            path: 'goodsList',
+            name: '商品列表',
+            component: GoodsList
+          },
+          {
+            path: 'goodsEdit',
+            name: '编辑商品',
+            component: GoodsEdit
+          }
+        ]
       }
     ]
   },
