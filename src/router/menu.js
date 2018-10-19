@@ -117,7 +117,7 @@ const menu = [
     children: [
       {
         level: 1,
-        path: '/userList',
+        path: '/userIndex',
         children: [],
         fixed: false,
         name: '用户管理'

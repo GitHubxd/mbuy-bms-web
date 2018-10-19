@@ -7,9 +7,15 @@ const Register = () => import('@/components/pages/Register')
 const E404 = () => import('@/components/pages/E404')
 const Icon = () => import('@/components/pages/Icon')
 const Login = () => import('@/components/pages/Login')
+
+// user
+const UserIndex = () => import('@/components/views/user/Index')
+const UserList = () => import('@/components/views/user/UserList')
+const UserEdit = () => import('@/components/views/user/UserEdit')
+
 const Table = () => import('@/components/views/Table')
 const UserInfo = () => import('@/components/views/UserInfo')
-const UserList = () => import('@/components/views/UserList')
+
 const List = () => import('@/components/views/List')
 const Filter = () => import('@/components/pages/Filter')
 const Lock = () => import('@/components/layout/base/Lock')
@@ -58,13 +64,26 @@ const routes = [
         }
       },
       {
-        path: '/userList',
-        name: 'userList',
-        component: UserList,
+        path: '/userIndex',
+        name: '用户列表',
+        component: UserIndex,
         icon: 'icon-addpeople_fill',
         meta: {
           requiresAuth: true // 是否需要登录
-        }
+        },
+        redirect: '/userIndex/userList',
+        children: [
+          {
+            path: 'userList',
+            name: '用户列表',
+            component: UserList
+          },
+          {
+            path: 'userEdit',
+            name: '编辑用户',
+            component: UserEdit
+          }
+        ]
       },
       {
         path: '/table',
