@@ -50,6 +50,14 @@ const userList = params => {
   })
 }
 
+const userAdd = params => {
+  return fetch({
+    url: baseUrl + '/user/add',
+    method: 'post',
+    data: params
+  })
+}
+
 /**
  * 提交用户注册信息
  * @param params
@@ -87,6 +95,7 @@ const apiList = {
   articleList,
   userLogin,
   userList,
+  userAdd,
   postUserInfo,
   checkToken,
   goodsList
