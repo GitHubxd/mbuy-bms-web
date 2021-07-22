@@ -24,7 +24,8 @@ const UserInfo = () => import('@/components/views/UserInfo')
 const List = () => import('@/components/views/List')
 const Filter = () => import('@/components/pages/Filter')
 const Lock = () => import('@/components/layout/base/Lock')
-
+const SetMenu = () => import('@/components/pages/SetMenu')
+const SetMenu2 = () => import('@/components/pages/SetMenu2')
 
 const routes = [
   {
@@ -142,6 +143,22 @@ const routes = [
             component: GoodsEdit
           }
         ]
+      },
+      {
+        path: '/setMenu',
+        name: 'setmenu',
+        component: SetMenu,
+        meta: {
+          requiresAuth: true
+        }
+      },
+      {
+        path: '/setMenu2',
+        name: 'setmenu2',
+        component: SetMenu2,
+        meta: {
+          requiresAuth: true
+        }
       }
     ]
   },

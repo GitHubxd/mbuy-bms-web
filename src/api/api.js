@@ -15,7 +15,7 @@ import fetch from './fetch.js'
 //     method: 'post'
 //   })
 // }
-const baseUrl = '/mbuy'
+const baseUrl = ''
 
 const orderList = params => {
   return fetch({
@@ -36,7 +36,7 @@ const articleList = params => {
 
 const userLogin = params => {
   return fetch({
-    url: baseUrl + '/user/login',
+    url: baseUrl + '/oauth/token',
     method: 'post',
     data: params
   })
@@ -90,6 +90,22 @@ const goodsList = params => {
   })
 }
 
+const getMenuAll = params => {
+  return fetch({
+    url: baseUrl + '/menu/getByUserId',
+    method: 'get',
+    params: ''
+  })
+}
+
+const addMenu = params => {
+  return fetch({
+    url: baseUrl + '/menu/add',
+    method: 'post',
+    data: params
+  })
+}
+
 const apiList = {
   orderList,
   articleList,
@@ -98,7 +114,9 @@ const apiList = {
   userAdd,
   postUserInfo,
   checkToken,
-  goodsList
+  goodsList,
+  getMenuAll,
+  addMenu
 }
 
 export default apiList

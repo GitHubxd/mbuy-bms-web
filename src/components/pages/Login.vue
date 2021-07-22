@@ -36,7 +36,6 @@
   </div>
 </template>
 <script>
-  import Cookies from 'js-cookie'
   export default {
     name: 'login',
     data () {
@@ -65,13 +64,14 @@
           this.modal_loading = false
           if (valid) {
             var params = {
-              userName: this.formValidate.name,
-              password: this.formValidate.password
+              'username': this.formValidate.name,
+              'password': this.formValidate.password,
+              'grant_type': 'password'
             }
             this.$api.userLogin(params).then((data) => {
-              if (data.errorCode === 10000) {
+              if (data.status === 10000) {
                 this.$Message.success('登录成功!')
-                Cookies.set('token', this.formValidate.password)
+                localStorage.setItem('accessToken', data.access_token)
                 this.$router.push('/index')
               } else {
                 this.$Message.error('用户名或密码错误!')
@@ -91,5 +91,3 @@
     }
   }
 </script>
-
-

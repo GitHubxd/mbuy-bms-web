@@ -131,6 +131,13 @@ const menu = [
       },
       {
         level: 1,
+        path: '/setMenu',
+        children: [],
+        fixed: false,
+        name: 'setMenu'
+      },
+      {
+        level: 1,
         path: '/notFound',
         children: [],
         fixed: false,

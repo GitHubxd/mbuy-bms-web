@@ -16,13 +16,17 @@ export default function fetch (options) {
     const instance = axios.create({
       baseURL: SERVER_BASE_URL,
       timeout: 10000,
-      headers: {'Content-Type': 'application/json;charset=UTF-8'}
+      headers: {
+        'Content-Type': 'application/json;charset=UTF-8'
+      }
     })
     // http request 拦截器
     instance.interceptors.request.use(
       config => {
         iView.LoadingBar.start()
-        // config.headers.Authorization = 'token'
+        if(localStorage.getItem('accessToken')){
+          config.headers.Authorization = 'Bearer '+localStorage.getItem('accessToken')
+        }
         return config
       },
       err => {
@@ -60,11 +64,7 @@ export default function fetch (options) {
       })
       .catch((error) => {
         // 请求失败时,根据业务判断状态
-        Notice.error({
-          title: '出错了！',
-          desc: '错误原因 ' + JSON.stringify(error),
-          duration: 0
-        })
+        console.log(JSON.stringify(error))
         reject(error)
       })
   })

@@ -8,7 +8,7 @@
         <h5>编辑导航栏</h5>
         <Menu width="200" theme="light" :accordion="true" @on-select="selectFn" id="menu">
           <div v-for="(item,index) in menu " :key="index">
-            <Submenu :name="index" v-if="item.children && item.children.length>0"
+            <Submenu :name="index" v-if="item.childList && item.childList.length>0"
                      @click.native="showItem($event,item,index)">
               <template slot="title">
                 <i class="icon iconfont " :class="item.icon ? item.icon :'icon-collection'"></i>
@@ -16,7 +16,7 @@
                 <Button type="warning" shape="circle" size="small" icon="ios-compose-outline"
                         v-if="currentIndex==index"></Button>
               </template>
-              <Menu-item :name="sub.path" v-for="(sub,i) in item.children" :key="i"
+              <Menu-item :name="sub.path" v-for="(sub,i) in item.childList" :key="i"
                          @click.native="showItem($event,sub,index,i)">
                 <i class="icon iconfont " :class="sub.icon ? sub.icon : 'icon-collection'"></i>
                 {{sub.name}}
@@ -24,7 +24,7 @@
               </Menu-item>
             </Submenu>
             <div>
-              <Menu-item :name="item.path" :key="index" v-if="item.children.length==0"
+              <Menu-item :name="item.path" :key="index" v-if="item.childList.length==0"
                          @click.native="showItem($event,item,index,0)">
                 <i class="icon iconfont " :class="item.icon ? item.icon :'icon-collection'"></i>
                 {{item.name}}
@@ -51,11 +51,11 @@
               <Radio :label="1" :disabled="formItem.editType==1">菜单</Radio>
             </Radio-group>
           </Form-item>
-          <Form-item label="目录" v-if="formItem.level==1" prop="parent">
+          <Form-item label="目录" v-if="formItem.level==1" prop="parentName">
             <Dropdown @on-click="selectParent" placement="bottom-start">
-              <Input v-model="formItem.parent" placeholder="请输入"></Input>
+              <Input v-model="formItem.parentName" placeholder="请输入"></Input>
               <Dropdown-menu slot="list">
-                <Dropdown-item v-for="item in formItem.options" :name="item">{{item}}</Dropdown-item>
+                <Dropdown-item v-for="(item,index) in formItem.options" :name="index">{{item.name}}</Dropdown-item>
               </Dropdown-menu>
             </Dropdown>
             <a @click="ps=true">规则说明！</a>
@@ -66,11 +66,11 @@
           <Form-item label="路径" v-if="formItem.level==1" prop="path">
             <Input v-model="formItem.path" placeholder="请输入"></Input>
           </Form-item>
-          <Form-item label="隐藏">
-            <i-switch v-model="formItem.hidden" size="large">
-              <span slot="open">开启</span>
-              <span slot="close">关闭</span>
-            </i-switch>
+          <Form-item label="是否显示">
+            <Radio-group v-model="formItem.showType">
+              <Radio :label="0" >不显示</Radio>
+              <Radio :label="1" >显示</Radio>
+            </Radio-group>
           </Form-item>
           <Form-item label="图标">
             <code style="cursor: pointer">
@@ -78,23 +78,17 @@
             </code>
           </Form-item>
           <Form-item label="权限">
-            <Select v-model="formItem.auth" placeholder="请选择">
-              <Option value="0">管理员</Option>
-              <Option value="1">普通用户</Option>
-              <Option value="2">游客</Option>
+            <Select v-model="formItem.roleId" placeholder="请选择">
+              <Option value="2">管理员</Option>
+              <Option value="3">普通用户</Option>
+              <Option value="4">游客</Option>
             </Select>
-          </Form-item>
-          <Form-item label="顺序">
-            <Slider v-model="formItem.sort"></Slider>
           </Form-item>
           <Form-item>
             <Button type="primary" @click="setMenu('menuForm')">提交</Button>
             <Button type="ghost" style="margin-left: 8px">取消</Button>
           </Form-item>
         </Form>
-        <pre>
-          {{formItem}}
-        </pre>
       </Card>
       </Col>
     </Row>
@@ -130,27 +124,22 @@
     data () {
       return {
         ps: false,
-        menu: menu,
+        menu: {},
         currentIndex: -1, // -1为新增 其他为修改对应的索引
         curi: -1,
         parentIndex: 0,
         formItem: {
           editType: 0,
-          level: 1,
+          level: 0,
           sort: 0,
-          auth: 1,
+          roleId: 0,
           icon: 'icon-collection',
-          hidden: false,
-          parent: '',
+          showType: 1,
+          parentId: 0,
+          parentName: '',
           path: '',
-          name: '',
-          options: menu.filter(item => { // 可选的目录
-            if (item.level === 0) {
-              return item
-            }
-          }).map(item => {
-            return item.name
-          })
+          names: '',
+          options: {}
         },
         ruleValidate: {
           name: [
@@ -168,12 +157,12 @@
           if (val !== -1) {
             this.formItem.editType = 1
             if (this.menu[val].level !== 1) {
-              this.formItem.parent = this.menu[val].name
+              this.formItem.parentName = this.menu[val].name
             }
           }
         }
       },
-      'formItem.parent': {
+      'formItem.parentId': {
         handler (val) {
           // 当目录改变时 创建一个parentIndex 保存该菜单应该添加的位置
           let c = this.menu.map(item => {
@@ -183,7 +172,6 @@
               return false
             }
           })
-          console.log(c)
           let index = c.indexOf(true)
           // 返回 -1 标示目录不存在或自己创建的
           this.parentIndex = index
@@ -214,18 +202,19 @@
         }
         this.currentIndex = index
         this.parentIndex = index // 当前点击的索引 和目录默认的索引一开始是一致的
+        console.log(this.formItem)
       },
-      selectParent (name) {
-        this.formItem.parent = name
+      selectParent (val) {
+        this.formItem.parentName = this.formItem.options[val].name
+        this.formItem.parentId = this.formItem.options[val].parentId
       },
       setMenu (name) {
         this.$refs[name].validate((valid) => {
           if (valid) { // 验证通过
-            let {name, hidden, path, icon, auth, sort, level, children} = this.formItem
-            let data = {name, hidden, path, icon, auth, sort, children: [], level}
+            let {name, showType, parentId, path, icon, roleId, sort, level, children} = this.formItem
+            let data = {name, showType, path, icon, roleId, sort, children: [], level}
             if (this.formItem.editType === 0) { // 新增
               if (this.formItem.level === 0) { // 判断是目录还是菜单 是目录直接添加
-                console.log('yes', data)
                 let there = this.menu.map(item => {
                   if (item.name === this.formItem.name) {
                     return true
@@ -237,14 +226,14 @@
                 if (has !== -1) {
                   alert('已存在同名目录')
                 } else {
-                  this.menu.push(data)
+                  console.log(data)
+                  //this.menu.push(data)
                 }
-                console.log(this.menu)
               } else { // 是菜单
-                console.log('no')
-                if (this.formItem.parent === '') { // 如果目录为空则直接创建菜单
-                  let data = {name, hidden, path, icon, auth, sort, children: [], level}
-                  this.menu.push(data)
+                if (this.formItem.parentId === '') { // 如果目录为空则直接创建菜单
+                console.log({name, showType, path, icon, roleId, sort, children: [], level})
+                  let data = {name, showType, path, icon, roleId, sort, children: [], level}
+                  this.addMenu(data)
                 } else {
                   let catalogue = this.menu.map(item => {
                     if (item.name === this.formItem.parent) { // 判断目录是否已经存在
@@ -255,27 +244,28 @@
                   })
                   let index = catalogue.indexOf(true)
                   if (index !== -1) {  // 把菜单直接添加到已经存在的目录下
-                    this.menu[index].children.push(data)
+                    //this.menu[index].children.push(data)
+                    this.addMenu(data)
                   } else { // 目录不存在 则生成目录 把菜单加到该目录下
                     let p = {
                       name: this.formItem.parent,
-                      hidden,
+                      show,
                       path,
                       icon,
-                      auth,
+                      roleId,
                       sort,
                       children: [],
                       level: 0
                     }
                     p.children.push(data)
-                    this.menu.push(p)
+                    this.addMenu(data)
                     console.log(this.menu)
                   }
                 }
               }
             } else { // 编辑
-              let newData = {name, hidden, path, icon, auth, children, sort, level}
-              let subData = {name, hidden, path, icon, auth, sort, level, children: []}
+              let newData = {name, show, path, icon, roleId, children, sort, level}
+              let subData = {name, show, path, icon, roleId, sort, level, children: []}
               if (this.curi && this.curi !== -1) { // 选择的菜单
                 // 目录不变
 //                this.$set(this.menu[this.currentIndex].children, this.curi, subData)
@@ -298,7 +288,7 @@
 
                     // 重新创建
                     let userData = {
-                      name: this.formItem.parent, hidden, path, icon, auth, sort, level: 0, children: []
+                      name: this.formItem.parentId, show, path, icon, roleId, sort, level: 0, children: []
                     }
                     userData.children.push(subData)
                     this.menu.push(userData)
@@ -312,7 +302,29 @@
             }
           }
         })
+      },
+      addMenu(data){
+        this.$api.addMenu(data).then((result) => {
+          console.log(result)
+        })
+      },
+      getMenuAll(){
+        this.$api.getMenuAll().then((data) => {
+          if(data.status === 10000){
+            this.menu = data.result
+            this.formItem.options = this.menu.filter(item => { // 可选的目录
+              if (item.level === 1) {
+                return item
+              }
+            }).map(item => {
+              return item
+            })
+          }
+        })
       }
+    },
+    mounted() {
+      this.getMenuAll()
     }
   }
 </script>

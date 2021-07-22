@@ -226,7 +226,7 @@
        *退出
        */
       logout () {
-        Cookies.remove('token')
+        localStorage.clear();
         this.$router.push('/login')
         this.$Message.success('退出成功')
       },
